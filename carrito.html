@@ -233,146 +233,145 @@
 /* Funciones de esta pantalla. Catálogo de repuestos. Los precios se expresan en céntimos de sol. */
 'use strict';
 const PRODUCTS = [
- {id:'puertas',name:'Puertas',category:'Carrocería',original:65000,price:58000,description:'Puertas para diferentes marcas y modelos. Consulta lado, versión y compatibilidad.'},
- {id:'faros',name:'Faros',category:'Iluminación',original:28000,price:24000,description:'Faros delanteros y posteriores. Consulta lado, conectores y modelo de tu vehículo.'},
- {id:'guardafangos',name:'Guardafangos',category:'Carrocería',original:22000,price:18500,description:'Guardafangos para carrocería exterior. Indica lado, marca, modelo y año.'},
- {id:'parachoques',name:'Parachoques',category:'Carrocería',original:45000,price:39000,description:'Parachoques delanteros y posteriores. Consulta versión y puntos de montaje.'},
- {id:'radiadores',name:'Radiadores',category:'Refrigeración',original:42000,price:36000,description:'Radiadores para diferentes vehículos. Confirma medidas, conexiones y transmisión.'},
- {id:'mascaras',name:'Máscaras',category:'Carrocería',original:30000,price:25500,description:'Máscaras y parrillas para distintos modelos. Consulta acabado y compatibilidad.'}
+  { id: 'puertas', name: 'Puertas', category: 'Carrocería', original: 65000, price: 58000, description: 'Puertas para diferentes marcas y modelos. Consulta lado, versión y compatibilidad.' },
+  { id: 'faros', name: 'Faros', category: 'Iluminación', original: 28000, price: 24000, description: 'Faros delanteros y posteriores. Consulta lado, conectores y modelo de tu vehículo.' },
+  { id: 'guardafangos', name: 'Guardafangos', category: 'Carrocería', original: 22000, price: 18500, description: 'Guardafangos para carrocería exterior. Indica lado, marca, modelo y año.' },
+  { id: 'parachoques', name: 'Parachoques', category: 'Carrocería', original: 45000, price: 39000, description: 'Parachoques delanteros y posteriores. Consulta versión y puntos de montaje.' },
+  { id: 'radiadores', name: 'Radiadores', category: 'Refrigeración', original: 42000, price: 36000, description: 'Radiadores para diferentes vehículos. Confirma medidas, conexiones y transmisión.' },
+  { id: 'mascaras', name: 'Máscaras', category: 'Carrocería', original: 30000, price: 25500, description: 'Máscaras y parrillas para distintos modelos. Consulta acabado y compatibilidad.' }
 ];
-const PHONE='51913212133';
-const CART_KEY='dajul-rr-cart-v1';
-const byId = id => PRODUCTS.find(p=>p.id===id);
-const money = cents => 'S/ '+(cents/100).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2});
-const discount = p => ((p.original-p.price)*100/p.original).toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
-const waURL = text => 'https://wa.me/'+PHONE+'?text='+encodeURIComponent(text);
-const escapeHTML = value => String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const quantity = value => Math.max(1,Math.min(99,Math.trunc(Number(value))||1));
-function sanitizeCart(value){
- if(!Array.isArray(value)) return [];
- const clean=new Map();
- value.slice(0,100).forEach(item=>{
-  if(Array.isArray(item)&&byId(item[0])&&Number.isFinite(item[1])&&item[1]>0){
-   clean.set(item[0],quantity((clean.get(item[0])||0)+item[1]));
-  }
- });
- return [...clean];
+const PHONE = '51913212133';
+const CART_KEY = 'dajul-rr-cart-v1';
+const byId = id => PRODUCTS.find(p => p.id === id);
+const money = cents => 'S/ ' + (cents / 100).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const discount = p => ((p.original - p.price) * 100 / p.original).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const waURL = text => 'https://wa.me/' + PHONE + '?text=' + encodeURIComponent(text);
+const escapeHTML = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const quantity = value => Math.max(1, Math.min(99, Math.trunc(Number(value)) || 1));
+function sanitizeCart(value) {
+  if (!Array.isArray(value)) return [];
+  const clean = new Map();
+  value.slice(0, 100).forEach(item => {
+    if (Array.isArray(item) && byId(item[0]) && Number.isFinite(item[1]) && item[1] > 0) {
+      clean.set(item[0], quantity((clean.get(item[0]) || 0) + item[1]));
+    }
+  });
+  return [...clean];
 }
-let storageAvailable=true;
-let cart=[];
-try{
- const saved=localStorage.getItem(CART_KEY);
- try{cart=sanitizeCart(JSON.parse(saved||'[]'));}catch{cart=[];}
- localStorage.setItem(CART_KEY,JSON.stringify(cart));
-}catch{storageAvailable=false;}
+let storageAvailable = true;
+let cart = [];
+try {
+  const saved = localStorage.getItem(CART_KEY);
+  try { cart = sanitizeCart(JSON.parse(saved || '[]')); } catch { cart = []; }
+  localStorage.setItem(CART_KEY, JSON.stringify(cart));
+} catch { storageAvailable = false; }
 // File URLs may have one storage area per HTML file. Carry only cart IDs and quantities.
-const transferCart=location.protocol==='file:'||!storageAvailable;
-if(transferCart){
- const encoded=new URLSearchParams(location.search).get('c');
- if(encoded!==null){try{cart=sanitizeCart(JSON.parse(atob(encoded)));}catch{cart=[];}}
+const transferCart = location.protocol === 'file:' || !storageAvailable;
+if (transferCart) {
+  const encoded = new URLSearchParams(location.search).get('c');
+  if (encoded !== null) { try { cart = sanitizeCart(JSON.parse(atob(encoded))); } catch { cart = []; } }
 }
-const $=selector=>document.querySelector(selector);
-const $$=selector=>[...document.querySelectorAll(selector)];
+const $ = selector => document.querySelector(selector);
+const $$ = selector => [...document.querySelectorAll(selector)];
 let toastTimer;
-function toast(text){
- const el=$('#toast');el.textContent=text;el.classList.add('visible');
- clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('visible'),3200);
+function toast(text) {
+  const el = $('#toast'); el.textContent = text; el.classList.add('visible');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('visible'), 3200);
 }
-function syncLinks(){
- if(!transferCart) return;
- const payload=btoa(JSON.stringify(cart));
- $$('a[href]').forEach(a=>{
-  const raw=a.getAttribute('href');
-  if(!raw||/^(?:[a-z]+:|\/\/|#)/i.test(raw))return;
-  const parsed=new URL(raw,location.href);
-  if(!parsed.pathname.endsWith('.html'))return;
-  const params=new URLSearchParams(parsed.search);params.set('c',payload);
-  a.setAttribute('href',raw.split(/[?#]/)[0]+'?'+params.toString()+parsed.hash);
- });
+function syncLinks() {
+  if (!transferCart) return;
+  const payload = btoa(JSON.stringify(cart));
+  $$('a[href]').forEach(a => {
+    const raw = a.getAttribute('href');
+    if (!raw || /^(?:[a-z]+:|\/\/|#)/i.test(raw)) return;
+    const parsed = new URL(raw, location.href);
+    if (!parsed.pathname.endsWith('.html')) return;
+    const params = new URLSearchParams(parsed.search); params.set('c', payload);
+    a.setAttribute('href', raw.split(/[?#]/)[0] + '?' + params.toString() + parsed.hash);
+  });
 }
-function saveCart(){
- try{localStorage.setItem(CART_KEY,JSON.stringify(cart));}catch{storageAvailable=false;}
- if(transferCart){
-  try{const current=new URL(location.href);current.searchParams.set('c',btoa(JSON.stringify(cart)));history.replaceState(null,'',current.href);}catch{/* Links still carry state when file history updates are restricted. */}
- }
- $$('.cart-count').forEach(el=>{const n=cart.reduce((s,item)=>s+item[1],0);el.textContent=n;el.setAttribute('aria-label',n+' unidades en pedidos');});
- if($('#storage-note'))$('#storage-note').hidden=storageAvailable;
- syncLinks();
+function saveCart() {
+  try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch { storageAvailable = false; }
+  if (transferCart) {
+    try { const current = new URL(location.href); current.searchParams.set('c', btoa(JSON.stringify(cart))); history.replaceState(null, '', current.href); } catch {/* Links still carry state when file history updates are restricted. */ }
+  }
+  $$('.cart-count').forEach(el => { const n = cart.reduce((s, item) => s + item[1], 0); el.textContent = n; el.setAttribute('aria-label', n + ' unidades en pedidos'); });
+  if ($('#storage-note')) $('#storage-note').hidden = storageAvailable;
+  syncLinks();
 }
-function addToCart(id){
- const product=byId(id);if(!product)return;
- const item=cart.find(item=>item[0]===id);
- if(item&&item[1]>=99){toast('Máximo de 99 unidades por repuesto.');return;}
- if(item)item[1]++;else cart.push([id,1]);
- saveCart();renderCart();toast(product.name+': agregado a tus pedidos.');
+function addToCart(id) {
+  const product = byId(id); if (!product) return;
+  const item = cart.find(item => item[0] === id);
+  if (item && item[1] >= 99) { toast('Máximo de 99 unidades por repuesto.'); return; }
+  if (item) item[1]++; else cart.push([id, 1]);
+  saveCart(); renderCart(); toast(product.name + ': agregado a tus pedidos.');
 }
-function totals(){
- return cart.reduce((sum,[id,qty])=>{const p=byId(id);sum.original+=p.original*qty;sum.total+=p.price*qty;return sum;},{original:0,total:0});
+function totals() {
+  return cart.reduce((sum, [id, qty]) => { const p = byId(id); sum.original += p.original * qty; sum.total += p.price * qty; return sum; }, { original: 0, total: 0 });
 }
-function renderCart(){
- if(!$('#cart-items'))return;
- const hasItems=cart.length>0;
- $('#cart-empty').hidden=hasItems;$('#cart-content').hidden=!hasItems;
- $('#cart-items').innerHTML=cart.map(([id,qty])=>{
-  const p=byId(id);
-  return `<article class="cart-row" data-cart-row="${id}"><img src="img/${id}.jpg" alt="${p.name}"><div><h3>${p.name}</h3><p>${money(p.price)} por unidad</p><div class="quantity"><button type="button" data-minus="${id}" aria-label="Reducir cantidad de ${p.name}">−</button><input type="number" min="1" max="99" step="1" value="${qty}" data-qty="${id}" aria-label="Cantidad de ${p.name}"><button type="button" data-plus="${id}" aria-label="Aumentar cantidad de ${p.name}">+</button></div></div><div class="row-total"><strong>${money(p.price*qty)}</strong><button type="button" data-remove="${id}" class="text-button" aria-label="Eliminar ${p.name} de pedidos">Eliminar</button></div></article>`;
- }).join('');
- const t=totals();$('#cart-original').textContent=money(t.original);$('#cart-total').textContent=money(t.total);$('#cart-savings').textContent='− '+money(t.original-t.total);
+function renderCart() {
+  if (!$('#cart-items')) return;
+  const hasItems = cart.length > 0;
+  $('#cart-empty').hidden = hasItems; $('#cart-content').hidden = !hasItems;
+  $('#cart-items').innerHTML = cart.map(([id, qty]) => {
+    const p = byId(id);
+    return `<article class="cart-row" data-cart-row="${id}"><img src="img/${id}.jpg" alt="${p.name}"><div><h3>${p.name}</h3><p>${money(p.price)} por unidad</p><div class="quantity"><button type="button" data-minus="${id}" aria-label="Reducir cantidad de ${p.name}">−</button><input type="number" min="1" max="99" step="1" value="${qty}" data-qty="${id}" aria-label="Cantidad de ${p.name}"><button type="button" data-plus="${id}" aria-label="Aumentar cantidad de ${p.name}">+</button></div></div><div class="row-total"><strong>${money(p.price * qty)}</strong><button type="button" data-remove="${id}" class="text-button" aria-label="Eliminar ${p.name} de pedidos">Eliminar</button></div></article>`;
+  }).join('');
+  const t = totals(); $('#cart-original').textContent = money(t.original); $('#cart-total').textContent = money(t.total); $('#cart-savings').textContent = '− ' + money(t.original - t.total);
 }
-function updateQuantity(id,value){
- const item=cart.find(item=>item[0]===id);if(!item)return;
- item[1]=quantity(value);saveCart();renderCart();
+function updateQuantity(id, value) {
+  const item = cart.find(item => item[0] === id); if (!item) return;
+  item[1] = quantity(value); saveCart(); renderCart();
 }
-function orderMessage(){
- const t=totals();const name=$('#client-name')?.value.trim();const vehicle=$('#vehicle')?.value.trim();
- return ['Hola, deseo consultar este pedido en Comercial Repuestos Dajul RR:',name?'Nombre: '+name:'',vehicle?'Vehículo: '+vehicle:'',...cart.map(([id,qty])=>`${qty} × ${byId(id).name} — ${money(byId(id).price)} c/u — Subtotal ${money(byId(id).price*qty)}`),'Total referencial: '+money(t.total),'Ahorro respecto al precio anterior: '+money(t.original-t.total),'Por favor, confirmen compatibilidad, disponibilidad, precio final y costo de entrega.'].filter(Boolean).join('\n');
+function orderMessage() {
+  const t = totals(); const name = $('#client-name')?.value.trim(); const vehicle = $('#vehicle')?.value.trim();
+  return ['Hola, deseo consultar este pedido en Comercial Repuestos Dajul RR:', name ? 'Nombre: ' + name : '', vehicle ? 'Vehículo: ' + vehicle : '', ...cart.map(([id, qty]) => `${qty} × ${byId(id).name} — ${money(byId(id).price)} c/u — Subtotal ${money(byId(id).price * qty)}`), 'Total referencial: ' + money(t.total), 'Ahorro respecto al precio anterior: ' + money(t.original - t.total), 'Por favor, confirmen compatibilidad, disponibilidad, precio final y costo de entrega.'].filter(Boolean).join('\n');
 }
-const dialog=$('#product-dialog');let dialogTrigger=null;
-function openDetail(id,trigger){
- const p=byId(id);if(!p)return;
- dialogTrigger=trigger;
- $('#dialog-content').innerHTML=`<div class="detail-grid"><img src="img/${p.id}.jpg" alt="${p.name}, imagen ilustrativa"><div class="detail-body"><p class="category">${p.category}</p><h2 id="dialog-title">${p.name}</h2><p>${p.description}</p><div class="price-line"><strong>${money(p.price)}</strong><del>${money(p.original)}</del></div><small>Ahorro: ${discount(p)} %. Precios e imágenes de referencia. Confirma compatibilidad, stock y vigencia.</small><button type="button" class="btn" data-add="${p.id}">Pedir</button><a class="text-button" target="_blank" rel="noopener noreferrer" href="${escapeHTML(waURL('Hola, deseo información sobre '+p.name+'. ¿Pueden confirmar precio y compatibilidad con mi vehículo?'))}">Consultar por WhatsApp ↗</a></div></div>`;
- dialog.showModal();document.body.classList.add('modal-open');$('.dialog-close').focus();
+const dialog = $('#product-dialog'); let dialogTrigger = null;
+function openDetail(id, trigger) {
+  const p = byId(id); if (!p) return;
+  dialogTrigger = trigger;
+  $('#dialog-content').innerHTML = `<div class="detail-grid"><img src="img/${p.id}.jpg" alt="${p.name}, imagen ilustrativa"><div class="detail-body"><p class="category">${p.category}</p><h2 id="dialog-title">${p.name}</h2><p>${p.description}</p><div class="price-line"><strong>${money(p.price)}</strong><del>${money(p.original)}</del></div><small>Ahorro: ${discount(p)} %. Precios e imágenes de referencia. Confirma compatibilidad, stock y vigencia.</small><button type="button" class="btn" data-add="${p.id}">Pedir</button><a class="text-button" target="_blank" rel="noopener noreferrer" href="${escapeHTML(waURL('Hola, deseo información sobre ' + p.name + '. ¿Pueden confirmar precio y compatibilidad con mi vehículo?'))}">Consultar por WhatsApp ↗</a></div></div>`;
+  dialog.showModal(); document.body.classList.add('modal-open'); $('.dialog-close').focus();
 }
-function closeDetail(){dialog.close();}
-dialog.addEventListener('close',()=>{document.body.classList.remove('modal-open');dialogTrigger?.focus();});
-$('.dialog-close').addEventListener('click',closeDetail);
-dialog.addEventListener('click',event=>{if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)closeDetail();}});
+function closeDetail() { dialog.close(); }
+dialog.addEventListener('close', () => { document.body.classList.remove('modal-open'); dialogTrigger?.focus(); });
+$('.dialog-close').addEventListener('click', closeDetail);
+dialog.addEventListener('click', event => { if (event.target === dialog) { const r = dialog.getBoundingClientRect(); if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) closeDetail(); } });
 // Sync static cards from the single catalog source.
-$$('.product-card').forEach(card=>{
- const p=byId(card.querySelector('[data-add]').dataset.add);
- card.querySelector('.price-line strong').textContent=money(p.price);
- card.querySelector('.price-line del').textContent=money(p.original);
- const badge=card.querySelector('[data-discount]');if(badge)badge.textContent='−'+discount(p)+' %';
+$$('.product-card').forEach(card => {
+  const p = byId(card.querySelector('[data-add]').dataset.add);
+  card.querySelector('.price-line strong').textContent = money(p.price);
+  card.querySelector('.price-line del').textContent = money(p.original);
+  const badge = card.querySelector('[data-discount]'); if (badge) badge.textContent = '−' + discount(p) + ' %';
 });
-document.addEventListener('click',event=>{
- const add=event.target.closest('[data-add]');if(add){addToCart(add.dataset.add);if(dialog.open)closeDetail();return;}
- const detail=event.target.closest('[data-detail]');if(detail){openDetail(detail.dataset.detail,detail);return;}
- const minus=event.target.closest('[data-minus]');const plus=event.target.closest('[data-plus]');
- if(minus||plus){const id=minus?.dataset.minus||plus.dataset.plus;const item=cart.find(item=>item[0]===id);updateQuantity(id,item[1]+(plus?1:-1));const next=$(`[data-${plus?'plus':'minus'}="${id}"]`);next?.focus();return;}
- const remove=event.target.closest('[data-remove]');if(remove){const id=remove.dataset.remove;cart=cart.filter(item=>item[0]!==id);saveCart();renderCart();toast(byId(id).name+': eliminado de pedidos.');($('#cart-items button')||$('#cart-empty a'))?.focus();}
- const anchor=event.target.closest('a');if(anchor&&$('.nav-links').classList.contains('open')){$('.nav-links').classList.remove('open');$('.menu-toggle').setAttribute('aria-expanded','false');}
+document.addEventListener('click', event => {
+  const add = event.target.closest('[data-add]'); if (add) { addToCart(add.dataset.add); if (dialog.open) closeDetail(); return; }
+  const detail = event.target.closest('[data-detail]'); if (detail) { openDetail(detail.dataset.detail, detail); return; }
+  const minus = event.target.closest('[data-minus]'); const plus = event.target.closest('[data-plus]');
+  if (minus || plus) { const id = minus?.dataset.minus || plus.dataset.plus; const item = cart.find(item => item[0] === id); updateQuantity(id, item[1] + (plus ? 1 : -1)); const next = $(`[data-${plus ? 'plus' : 'minus'}="${id}"]`); next?.focus(); return; }
+  const remove = event.target.closest('[data-remove]'); if (remove) { const id = remove.dataset.remove; cart = cart.filter(item => item[0] !== id); saveCart(); renderCart(); toast(byId(id).name + ': eliminado de pedidos.'); ($('#cart-items button') || $('#cart-empty a'))?.focus(); }
+  const anchor = event.target.closest('a'); if (anchor && $('.nav-links').classList.contains('open')) { $('.nav-links').classList.remove('open'); $('.menu-toggle').setAttribute('aria-expanded', 'false'); }
 });
-document.addEventListener('change',event=>{if(event.target.matches('[data-qty]')){const id=event.target.dataset.qty;updateQuantity(id,event.target.value);$(`[data-qty="${id}"]`)?.focus();}});
-$('#clear-cart')?.addEventListener('click',()=>{cart=[];saveCart();renderCart();toast('Lista de pedidos vaciada.');$('#cart-empty a').focus();});
-$('#checkout-form')?.addEventListener('submit',event=>{
- event.preventDefault();if(!cart.length){toast('Agrega un producto para preparar tu pedido.');return;}
- window.open(waURL(orderMessage()),'_blank','noopener,noreferrer');
+document.addEventListener('change', event => { if (event.target.matches('[data-qty]')) { const id = event.target.dataset.qty; updateQuantity(id, event.target.value); $(`[data-qty="${id}"]`)?.focus(); } });
+$('#clear-cart')?.addEventListener('click', () => { cart = []; saveCart(); renderCart(); toast('Lista de pedidos vaciada.'); $('#cart-empty a').focus(); });
+$('#checkout-form')?.addEventListener('submit', event => {
+  event.preventDefault(); if (!cart.length) { toast('Agrega un producto para preparar tu pedido.'); return; }
+  window.open(waURL(orderMessage()), '_blank', 'noopener,noreferrer');
 });
-const normalize=text=>text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-function filterProducts(){
- const query=normalize($('#search').value.trim());const category=$('#category').value;let count=0;
- $$('.product-card').forEach(card=>{const visible=normalize(card.dataset.name+' '+card.dataset.category).includes(query)&&(!category||card.dataset.category===category);card.hidden=!visible;if(visible)count++;});
- $('#no-results').hidden=count!==0;$('#result-count').textContent=count+' producto'+(count===1?'':'s');
+const normalize = text => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+function filterProducts() {
+  const query = normalize($('#search').value.trim()); const category = $('#category').value; let count = 0;
+  $$('.product-card').forEach(card => { const visible = normalize(card.dataset.name + ' ' + card.dataset.category).includes(query) && (!category || card.dataset.category === category); card.hidden = !visible; if (visible) count++; });
+  $('#no-results').hidden = count !== 0; $('#result-count').textContent = count + ' producto' + (count === 1 ? '' : 's');
 }
-$('#search')?.addEventListener('input',filterProducts);$('#category')?.addEventListener('change',filterProducts);
-$('.menu-toggle').addEventListener('click',()=>{const isOpen=$('.nav-links').classList.toggle('open');$('.menu-toggle').setAttribute('aria-expanded',String(isOpen));});
-document.addEventListener('keydown',event=>{if(event.key==='Escape'&&$('.nav-links').classList.contains('open')){$('.nav-links').classList.remove('open');$('.menu-toggle').setAttribute('aria-expanded','false');$('.menu-toggle').focus();}});
-window.addEventListener('storage',event=>{if(event.key===CART_KEY&&!transferCart){try{cart=sanitizeCart(JSON.parse(event.newValue||'[]'));}catch{cart=[];}saveCart();renderCart();}});
+$('#search')?.addEventListener('input', filterProducts); $('#category')?.addEventListener('change', filterProducts);
+$('.menu-toggle').addEventListener('click', () => { const isOpen = $('.nav-links').classList.toggle('open'); $('.menu-toggle').setAttribute('aria-expanded', String(isOpen)); });
+document.addEventListener('keydown', event => { if (event.key === 'Escape' && $('.nav-links').classList.contains('open')) { $('.nav-links').classList.remove('open'); $('.menu-toggle').setAttribute('aria-expanded', 'false'); $('.menu-toggle').focus(); } });
+window.addEventListener('storage', event => { if (event.key === CART_KEY && !transferCart) { try { cart = sanitizeCart(JSON.parse(event.newValue || '[]')); } catch { cart = []; } saveCart(); renderCart(); } });
 // Returning with Back/Forward may restore an older DOM from the browser cache.
-window.addEventListener('pageshow',event=>{if(event.persisted&&!transferCart){try{cart=sanitizeCart(JSON.parse(localStorage.getItem(CART_KEY)||'[]'));}catch{cart=[];}saveCart();renderCart();}});
-saveCart();renderCart();
-
+window.addEventListener('pageshow', event => { if (event.persisted && !transferCart) { try { cart = sanitizeCart(JSON.parse(localStorage.getItem(CART_KEY) || '[]')); } catch { cart = []; } saveCart(); renderCart(); } });
+saveCart(); renderCart();
     </script>
   </body>
 
